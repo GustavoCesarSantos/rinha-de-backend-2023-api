@@ -1,0 +1,19 @@
+{
+  "name": "rinha-de-backend-2023-api",
+  "version": "0.0.0",
+  "description": "API construída para a rinha de backend 2023 Q3",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GustavoCesarSantos/rinha-de-backend-2023-api.git"
+  },
+  "author": "GustavoCesarSantos",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GustavoCesarSantos/rinha-de-backend-2023-api/issues"
+  },
+  "homepage": "https://github.com/GustavoCesarSantos/rinha-de-backend-2023-api#readme"
+}
