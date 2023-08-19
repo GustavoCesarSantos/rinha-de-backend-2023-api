@@ -3,8 +3,10 @@
   "version": "0.0.0",
   "description": "API construída para a rinha de backend 2023 Q3",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/GustavoCesarSantos/rinha-de-backend-2023-api/issues"
   },
-  "homepage": "https://github.com/GustavoCesarSantos/rinha-de-backend-2023-api#readme"
+  "homepage": "https://github.com/GustavoCesarSantos/rinha-de-backend-2023-api#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
