@@ -1,8 +1,12 @@
 export class Proteger {
-    static contraPessoaInvalida(pessoa) {
+    constructor(pessoasRepository) {
+        this.pessoasRepository = pessoasRepository;
+    }
+
+    async contraPessoaInvalida(pessoa) {
         if(!pessoa) {
             return {
-                status: 'ERROR',
+                status: 'requisição inválida',
                 mensagem: 'json de criação não enviado',
                 caminho: '',
                 recebido: '',
@@ -11,7 +15,7 @@ export class Proteger {
         }
         if(!pessoa.apelido) {
             return {
-                status: 'ERROR',
+                status: 'requisição inválida',
                 mensagem: 'apelido não enviado',
                 caminho: 'request.body.apelido',
                 recebido: 'undefined',
@@ -20,7 +24,7 @@ export class Proteger {
         }
         if(typeof pessoa.apelido !== 'string') {
             return {
-                status: 'ERROR',
+                status: 'requisição sintaticamente inválida',
                 mensagem: 'apelido tipo invalido',
                 caminho: 'request.body.apelido',
                 recebido: `${typeof pessoa.apelido}`,
@@ -29,16 +33,26 @@ export class Proteger {
         }
         if(pessoa.apelido.length > 32) {
             return {
-                status: 'ERROR',
+                status: 'requisição sintaticamente inválida',
                 mensagem: 'apelido com tamanho invalido',
                 caminho: 'request.body.apelido',
                 recebido: `${pessoa.apelido.length}`,
                 esperado: 'menor ou igual a 32'
             }
         }
+        const pessoaDB = await this.pessoasRepository.encontrarPeloApelido(pessoa.apelido);
+        if(pessoaDB) {
+            return {
+                status: 'requisição inválida',
+                mensagem: 'apelido ja utilizado',
+                caminho: 'request.body.apelido',
+                recebido: 'string',
+                esperado: 'string'
+            }
+        }
         if(!pessoa.nome) {
             return {
-                status: 'ERROR',
+                status: 'requisição inválida',
                 mensagem: 'nome não enviado',
                 caminho: 'request.body.nome',
                 recebido: 'undefined',
@@ -47,7 +61,7 @@ export class Proteger {
         }
         if(typeof pessoa.nome !== 'string') {
             return {
-                status: 'ERROR',
+                status: 'requisição sintaticamente inválida',
                 mensagem: 'nome tipo invalido',
                 caminho: 'request.body.nome',
                 recebido: `${typeof pessoa.nome}`,
@@ -56,7 +70,7 @@ export class Proteger {
         }
         if(pessoa.nome.length > 100) {
             return {
-                status: 'ERROR',
+                status: 'requisição sintaticamente inválida',
                 mensagem: 'nome com tamanho invalido',
                 caminho: 'request.body.nome',
                 recebido: `${pessoa.nome.length}`,
@@ -65,7 +79,7 @@ export class Proteger {
         }
         if(!pessoa.nascimento) {
             return {
-                status: 'ERROR',
+                status: 'requisição inválida',
                 mensagem: 'nascimento não enviado',
                 caminho: 'request.body.nascimento',
                 recebido: 'undefined',
@@ -74,7 +88,7 @@ export class Proteger {
         }
         if(typeof pessoa.nascimento !== 'string') {
             return {
-                status: 'ERROR',
+                status: 'requisição sintaticamente inválida',
                 mensagem: 'nascimento tipo invalido',
                 caminho: 'request.body.nascimento',
                 recebido: `${typeof pessoa.nascimento}`,
@@ -84,7 +98,7 @@ export class Proteger {
         const regex = /^\d{4}-\d{2}-\d{2}$/;
         if (!regex.test(pessoa.nascimento)) {
             return {
-                status: 'ERROR',
+                status: 'requisição sintaticamente inválida',
                 mensagem: 'nascimento com formato invalido',
                 caminho: 'request.body.nascimento',
                 recebido: pessoa.nascimento,
@@ -96,7 +110,7 @@ export class Proteger {
         const mes = parseInt(partesData[1], 10);
         if(mes > 12) {
             return {
-                status: 'ERROR',
+                status: 'requisição sintaticamente inválida',
                 mensagem: 'nascimento com valor invalido',
                 caminho: 'request.body.nascimento',
                 recebido: pessoa.nascimento,
@@ -106,7 +120,7 @@ export class Proteger {
         const dia = parseInt(partesData[2], 10);
         if(dia > 31) {
             return {
-                status: 'ERROR',
+                status: 'requisição sintaticamente inválida',
                 mensagem: 'nascimento com valor invalido',
                 caminho: 'request.body.nascimento',
                 recebido: pessoa.nascimento,
@@ -120,7 +134,7 @@ export class Proteger {
             dataObj.getDate() !== dia
         ) {
              return {
-                status: 'ERROR',
+                status: 'requisição sintaticamente inválida',
                 mensagem: 'nascimento com valor invalido',
                 caminho: 'request.body.nascimento',
                 recebido: pessoa.nascimento,
@@ -130,7 +144,7 @@ export class Proteger {
         if(pessoa.stack === undefined || pessoa.stack === null) return
         if(typeof pessoa.stack !== 'object') {
             return {
-                status: 'ERROR',
+                status: 'requisição sintaticamente inválida',
                 mensagem: 'stack tipo invalido',
                 caminho: 'request.body.stack',
                 recebido: `${typeof pessoa.stack}`,
@@ -139,7 +153,7 @@ export class Proteger {
         }
         if(!pessoa.stack.length) {
             return {
-                status: 'ERROR',
+                status: 'requisição inválida',
                 mensagem: 'stack vazio',
                 caminho: 'request.body.stack',
                 recebido: '[]',
@@ -150,7 +164,7 @@ export class Proteger {
         for(const stack of pessoa.stack) {
             if(typeof stack !== 'string') {
                 return {
-                    status: 'ERROR',
+                    status: 'requisição sintaticamente inválida',
                     mensagem: `item: ${stack} tipo invalido`,
                     caminho: `request.body.stack[${index}]`,
                     recebido: `${typeof stack}`,
@@ -159,7 +173,7 @@ export class Proteger {
             }
             if(stack.length > 32) {
                 return {
-                    status: 'ERROR',
+                    status: 'requisição sintaticamente inválida',
                     mensagem: `item: ${stack} com tamanho invalido`,
                     caminho: `request.body.stack[${index}]`,
                     recebido: stack.length,
