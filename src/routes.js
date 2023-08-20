@@ -1,7 +1,9 @@
 import { Proteger } from "./helpers/proteger.js";
-import { CriarPessoaController } from "./modulos/pessoas/criar-pessoa.controller.js";
-import { CriarPessoaService } from "./modulos/pessoas/criar-pessoa.service.js";
 import { PessoasRepository } from "./modulos/pessoas/pessoas.repository.js";
+import { CriarPessoaService } from "./modulos/pessoas/criar-pessoa.service.js";
+import { CriarPessoaController } from "./modulos/pessoas/criar-pessoa.controller.js";
+import { EncontrarPessoaPeloIdService } from "./modulos/pessoas/encontrar-pessoa-pelo-id.service.js";
+import { EncontrarPessoaController } from "./modulos/pessoas/encontrar-pessoa.controller.js";
 
 const pessoasRepository = new PessoasRepository();
 const proteger = new Proteger(pessoasRepository);
@@ -9,6 +11,12 @@ const criarPessoaService = new CriarPessoaService(pessoasRepository);
 const criarPessoaController = new CriarPessoaController({
   proteger,
   criarPessoaService,
+});
+const encontrarPessoaPeloIdService = new EncontrarPessoaPeloIdService(
+  pessoasRepository
+);
+const encontrarPessoaController = new EncontrarPessoaController({
+  encontrarPessoaPeloIdService,
 });
 
 export const routes = (router) => {
@@ -18,6 +26,6 @@ export const routes = (router) => {
   );
   router.get(
     "/pessoas/:id",
-    criarPessoaController.handle.bind(criarPessoaController)
+    encontrarPessoaController.handle.bind(encontrarPessoaController)
   );
 };
