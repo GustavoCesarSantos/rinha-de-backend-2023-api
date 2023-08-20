@@ -45,4 +45,48 @@ export class PessoasRepository {
       await database.release(true);
     }
   }
+
+  async encontrarPessoas(query) {
+    const database = await pool.connect();
+    try {
+      const item = `%${query}%`.replace(/"/g, "");
+      const response = await database.query(
+        `
+        SELECT 
+          id,
+          apelido,
+          nome,
+          nascimento,
+          stack
+        FROM 
+          Pessoas 
+        WHERE 
+          apelido LIKE $1
+          OR nome LIKE $1
+        UNION
+        SELECT 
+          id,
+          apelido,
+          nome,
+          nascimento,
+          stack
+        FROM 
+          Pessoas 
+        WHERE 
+          EXISTS (
+            SELECT 1
+            FROM unnest(stack) AS individual_value
+            WHERE individual_value LIKE $1
+          )
+        LIMIT 50;
+        `,
+        [item]
+      );
+      return response.rows;
+    } catch (error) {
+      throw new Error(error.message);
+    } finally {
+      await database.release(true);
+    }
+  }
 }
