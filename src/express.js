@@ -36,6 +36,8 @@ export class ExpressApp {
     this.setCors();
     this.setRoutes();
     const port = process.env.PORT || 3333;
-    this.app.listen(port, () => console.info(`Server running at ${port}`));
+    return this.app.listen(port, () =>
+      console.info(`Server running at ${port}`)
+    );
   }
 }
