@@ -89,4 +89,18 @@ export class PessoasRepository {
       await database.release(true);
     }
   }
+
+  async contagem() {
+    const database = await pool.connect();
+    try {
+      const response = await database.query(
+        "SELECT COUNT(*) AS count FROM Pessoas;"
+      );
+      return response.rows[0].count;
+    } catch (error) {
+      throw new Error(error.message);
+    } finally {
+      await database.release(true);
+    }
+  }
 }
