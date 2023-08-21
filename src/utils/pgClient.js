@@ -11,3 +11,8 @@ export const pool = new Pool({
   password: process.env.POSTGRES_PASSWORD,
   max: 100,
 });
+
+pool.on("error", async (err, client) => {
+  await pool.end();
+  process.exit(-1);
+});
