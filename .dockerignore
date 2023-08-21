@@ -1,0 +1,17 @@
+__tests__
+node_modules
+devops
+coverage
+dist
+npm-debug.log
+Dockerfile
+docker*.yml
+.git
+.gitignore
+.github
+.husky
+.config
+.npm
+.vscode
+.env
+*.md
