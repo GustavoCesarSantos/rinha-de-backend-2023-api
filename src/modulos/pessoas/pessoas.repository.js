@@ -13,7 +13,10 @@ export class PessoasRepository {
           apelido: pessoa.apelido,
           nome: pessoa.nome,
           nascimento: pessoa.nascimento,
-          stack: pessoa.stack.length ? pessoa.stack.toString() : null,
+          stack:
+            pessoa.stack && pessoa.stack.length
+              ? pessoa.stack.toString()
+              : null,
         },
       });
       return pessoaID;
@@ -56,9 +59,8 @@ export class PessoasRepository {
     }
   }
 
-  async encontrarPessoas(query) {
+  async encontrarPessoas(contains) {
     try {
-      const contains = query.replaceAll(/'/gi, "").replace(/"/g, "");
       const pessoas = await prisma.pessoas.findMany({
         where: {
           OR: [
@@ -91,18 +93,12 @@ export class PessoasRepository {
   }
 
   async contagem() {
-    const database = await pool.connect();
     try {
       return await prisma.pessoas.count();
-      // const response = await database.query(
-      //   "SELECT COUNT(*) AS count FROM Pessoas;"
-      // );
-      // return response.rows[0].count;
     } catch (error) {
       throw new Error(error.message);
     } finally {
       await prisma.$disconnect();
-      // await database.release(true);
     }
   }
 }
