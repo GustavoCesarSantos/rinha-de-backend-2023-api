@@ -1,106 +1,108 @@
+import { randomUUID } from "crypto";
+
+import { prisma } from "../../utils/prismaClient.js";
 import { pool } from "../../utils/pgClient.js";
 
 export class PessoasRepository {
   async criar(pessoa) {
-    const database = await pool.connect();
     try {
-      const response = await database.query(
-        "INSERT INTO Pessoas(apelido, nome, nascimento, stack) VALUES($1, $2, $3, $4) RETURNING id",
-        [pessoa.apelido, pessoa.nome, pessoa.nascimento, pessoa.stack]
-      );
-      return response.rows[0].id;
+      const pessoaID = randomUUID();
+      await prisma.pessoas.create({
+        data: {
+          pessoaID,
+          apelido: pessoa.apelido,
+          nome: pessoa.nome,
+          nascimento: pessoa.nascimento,
+          stack: pessoa.stack.length ? pessoa.stack.toString() : null,
+        },
+      });
+      return pessoaID;
     } catch (error) {
       throw new Error(error.message);
     } finally {
-      await database.release(true);
+      await prisma.$disconnect();
     }
   }
 
   async encontrarPeloId(id) {
-    const database = await pool.connect();
     try {
-      const response = await database.query(
-        `SELECT id, apelido, nome, nascimento, stack FROM Pessoas WHERE id = $1`,
-        [id]
-      );
-      return response.rows.length ? response.rows[0] : null;
+      const pessoa = await prisma.pessoas.findUnique({
+        where: { pessoaID: id },
+      });
+      if (!pessoa) return null;
+      return {
+        id: pessoa.pessoaID,
+        apelido: pessoa.apelido,
+        nome: pessoa.nome,
+        nascimento: pessoa.nascimento,
+        stack: pessoa.stack ? pessoa.stack.split(",") : null,
+      };
     } catch (error) {
       throw new Error(error.message);
     } finally {
-      await database.release(true);
+      await prisma.$disconnect();
     }
   }
 
   async encontrarPeloApelido(apelido) {
-    const database = await pool.connect();
     try {
-      const response = await database.query(
-        `SELECT id FROM Pessoas WHERE apelido = $1`,
-        [apelido]
-      );
-      return response.rows.length ? response.rows[0] : null;
+      return await prisma.pessoas.findUnique({
+        where: { apelido },
+      });
     } catch (error) {
       throw new Error(error.message);
     } finally {
-      await database.release(true);
+      await prisma.$disconnect();
     }
   }
 
   async encontrarPessoas(query) {
-    const database = await pool.connect();
     try {
-      const item = `%${query}%`.replace(/"/g, "");
-      const response = await database.query(
-        `
-        SELECT 
-          id,
-          apelido,
-          nome,
-          nascimento,
-          stack
-        FROM 
-          Pessoas 
-        WHERE 
-          apelido LIKE $1
-          OR nome LIKE $1
-        UNION
-        SELECT 
-          id,
-          apelido,
-          nome,
-          nascimento,
-          stack
-        FROM 
-          Pessoas 
-        WHERE 
-          EXISTS (
-            SELECT 1
-            FROM unnest(stack) AS individual_value
-            WHERE individual_value LIKE $1
-          )
-        LIMIT 50;
-        `,
-        [item]
-      );
-      return response.rows;
+      const contains = query.replaceAll(/'/gi, "").replace(/"/g, "");
+      const pessoas = await prisma.pessoas.findMany({
+        where: {
+          OR: [
+            {
+              apelido: { contains, mode: "insensitive" },
+            },
+            {
+              nome: { contains, mode: "insensitive" },
+            },
+            {
+              stack: { contains, mode: "insensitive" },
+            },
+          ],
+        },
+      });
+      return pessoas.map((pessoa) => {
+        return {
+          id: pessoa.pessoaID,
+          apelido: pessoa.apelido,
+          nome: pessoa.nome,
+          nascimento: pessoa.nascimento,
+          stack: pessoa.stack ? pessoa.stack.split(",") : null,
+        };
+      });
     } catch (error) {
       throw new Error(error.message);
     } finally {
-      await database.release(true);
+      await prisma.$disconnect();
     }
   }
 
   async contagem() {
     const database = await pool.connect();
     try {
-      const response = await database.query(
-        "SELECT COUNT(*) AS count FROM Pessoas;"
-      );
-      return response.rows[0].count;
+      return await prisma.pessoas.count();
+      // const response = await database.query(
+      //   "SELECT COUNT(*) AS count FROM Pessoas;"
+      // );
+      // return response.rows[0].count;
     } catch (error) {
       throw new Error(error.message);
     } finally {
-      await database.release(true);
+      await prisma.$disconnect();
+      // await database.release(true);
     }
   }
 }
