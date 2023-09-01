@@ -17,4 +17,6 @@ model Pessoas {
   nome String
   nascimento String
   stack String?
+
+  @@index([pessoaID, apelido, nome, stack])
 }
