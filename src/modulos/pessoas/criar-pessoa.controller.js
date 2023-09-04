@@ -1,3 +1,6 @@
+import { IORedisCliente } from "../../utils/ioredisClient.js";
+import { criarPessoaAsync } from "./queues/criar-pessoa.queue.js";
+
 export class CriarPessoaController {
   constructor({ proteger, criarPessoaService }) {
     this.proteger = proteger;
@@ -7,6 +10,10 @@ export class CriarPessoaController {
   async handle(request, response) {
     try {
       const pessoa = request.body;
+      IORedisCliente.set('t', 'teste');
+      const result = await IORedisCliente.get('t');
+      console.info('RESULT CACHE', result);
+      criarPessoaAsync('teste de criação de pessoa controller');
       const erro = await this.proteger.contraPessoaInvalida(pessoa);
       if (erro?.status === "requisição inválida") {
         return response.status(422).json(erro);
