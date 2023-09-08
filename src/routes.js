@@ -1,6 +1,5 @@
 import { Proteger } from "./helpers/proteger.js";
 import { PessoasRepository } from "./modulos/pessoas/pessoas.repository.js";
-import { CriarPessoaService } from "./modulos/pessoas/criar-pessoa.service.js";
 import { CriarPessoaController } from "./modulos/pessoas/criar-pessoa.controller.js";
 import { EncontrarPessoaPeloIdService } from "./modulos/pessoas/encontrar-pessoa-pelo-id.service.js";
 import { EncontrarPessoaController } from "./modulos/pessoas/encontrar-pessoa.controller.js";
@@ -11,10 +10,8 @@ import { ContagemPessoasController } from "./modulos/pessoas/contagem-pessoas.co
 
 const pessoasRepository = new PessoasRepository();
 const proteger = new Proteger(pessoasRepository);
-const criarPessoaService = new CriarPessoaService(pessoasRepository);
 const criarPessoaController = new CriarPessoaController({
   proteger,
-  criarPessoaService,
 });
 const encontrarPessoaPeloIdService = new EncontrarPessoaPeloIdService(
   pessoasRepository

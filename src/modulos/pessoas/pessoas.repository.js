@@ -1,15 +1,11 @@
-import { randomUUID } from "crypto";
-
 import { prisma } from "../../utils/prismaClient.js";
-import { pool } from "../../utils/pgClient.js";
 
 export class PessoasRepository {
   async criar(pessoa) {
     try {
-      const pessoaID = randomUUID();
       await prisma.pessoas.create({
         data: {
-          pessoaID,
+          pessoaID: pessoa.id,
           apelido: pessoa.apelido,
           nome: pessoa.nome,
           nascimento: pessoa.nascimento,
@@ -19,7 +15,6 @@ export class PessoasRepository {
               : null,
         },
       });
-      return pessoaID;
     } catch (error) {
       throw new Error(error.message);
     } finally {
