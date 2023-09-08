@@ -24,6 +24,10 @@ export class EncontrarPessoaController {
           esperado: "string",
         });
       }
+      const pessoaCache = await IORedisCliente.get(id);
+      if (pessoaCache) {
+        return response.status(200).json(pessoaCache);
+      }
       const pessoa = await this.encontrarPessoaPeloIdService.execute(id);
       if (!pessoa) {
         return response.status(404).json({ status: "pessoa não encontrada" });

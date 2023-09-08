@@ -19,7 +19,7 @@ export class CriarPessoaController {
         return response.status(400).json(erro);
       }
       const pessoaID = randomUUID();
-      IORedisCliente.set(pessoaID, { id: pessoaID, ...pessoa });
+      await IORedisCliente.set(pessoaID, { id: pessoaID, ...pessoa });
       criarPessoaAsync({ id: pessoaID, ...pessoa });
       response.setHeader("Location", `/pessoas/${pessoaID}`);
       response.status(201).json({ status: "pessoa criada com sucesso" });
