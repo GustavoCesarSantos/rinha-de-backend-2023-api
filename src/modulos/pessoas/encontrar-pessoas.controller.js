@@ -1,6 +1,6 @@
 export class EncontrarPessoasController {
-  constructor({ encontrarPessoasService }) {
-    this.encontrarPessoasService = encontrarPessoasService;
+  constructor({ pessoasRepository }) {
+    this.pessoasRepository = pessoasRepository;
   }
 
   async handle(request, response) {
@@ -15,17 +15,7 @@ export class EncontrarPessoasController {
           esperado: "string",
         });
       }
-      const query = t.replaceAll(/'/gi, "").replaceAll(/"/g, "");
-      if (query === "") {
-        return response.status(400).json({
-          status: "requisição inválida",
-          mensagem: "query string não enviada",
-          caminho: "request.query.t",
-          recebido: "undefined",
-          esperado: "string",
-        });
-      }
-      const pessoas = await this.encontrarPessoasService.execute(query);
+      const pessoas = await this.pessoasRepository.encontrarPessoas(t);
       response.status(200).json(pessoas);
     } catch (error) {
       response.status(500).json({ error: error.message });

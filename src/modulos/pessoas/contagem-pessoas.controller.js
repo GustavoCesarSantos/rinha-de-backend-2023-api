@@ -1,11 +1,11 @@
 export class ContagemPessoasController {
-  constructor({ contagemPessoasService }) {
-    this.contagemPessoasService = contagemPessoasService;
+  constructor({ pessoasRepository }) {
+    this.pessoasRepository = pessoasRepository;
   }
 
   async handle(request, response) {
     try {
-      const contagem = await this.contagemPessoasService.execute();
+      const contagem = await this.pessoasRepository.contagem();
       response.status(200).json({ contagem });
     } catch (error) {
       response.status(500).json({ error: error.message });

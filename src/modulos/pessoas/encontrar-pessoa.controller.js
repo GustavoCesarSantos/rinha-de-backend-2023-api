@@ -1,6 +1,6 @@
 export class EncontrarPessoaController {
-  constructor({ encontrarPessoaPeloIdService }) {
-    this.encontrarPessoaPeloIdService = encontrarPessoaPeloIdService;
+  constructor({ pessoasRepository }) {
+    this.pessoasRepository = pessoasRepository;
   }
 
   async handle(request, response) {
@@ -24,11 +24,7 @@ export class EncontrarPessoaController {
           esperado: "string",
         });
       }
-      const pessoaCache = await IORedisCliente.get(id);
-      if (pessoaCache) {
-        return response.status(200).json(pessoaCache);
-      }
-      const pessoa = await this.encontrarPessoaPeloIdService.execute(id);
+      const pessoa = await this.pessoasRepository.encontrarPeloId(id);
       if (!pessoa) {
         return response.status(404).json({ status: "pessoa não encontrada" });
       }

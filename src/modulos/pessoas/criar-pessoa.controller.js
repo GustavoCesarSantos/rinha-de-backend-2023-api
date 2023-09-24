@@ -1,27 +1,25 @@
 import { randomUUID } from "node:crypto";
 
-import { IORedisCliente } from "../../utils/ioredisClient.js";
-import { criarPessoaAsync } from "./queues/criar-pessoa.queue.js";
+import { Proteger } from "../../helpers/proteger.js";
 
 export class CriarPessoaController {
-  constructor({ proteger }) {
-    this.proteger = proteger;
+  constructor({ pessoasRepository }) {
+    this.pessoasRepository = pessoasRepository;
   }
 
   async handle(request, response) {
     try {
       const pessoa = request.body;
-      const erro = await this.proteger.contraPessoaInvalida(pessoa);
+      const erro = await Proteger.contraPessoaInvalida(pessoa);
       if (erro?.status === "requisição inválida") {
         return response.status(422).json(erro);
       }
       if (erro?.status === "requisição sintaticamente inválida") {
         return response.status(400).json(erro);
       }
-      const pessoaID = randomUUID();
-      await IORedisCliente.set(pessoaID, { id: pessoaID, ...pessoa });
-      criarPessoaAsync({ id: pessoaID, ...pessoa });
-      response.setHeader("Location", `/pessoas/${pessoaID}`);
+      const id = randomUUID();
+      await this.pessoasRepository.cadastrar({ id, ...pessoa });
+      response.setHeader("Location", `/pessoas/${id}`);
       response.status(201).json({ status: "pessoa criada com sucesso" });
     } catch (error) {
       response.status(500).json({ error: error.message });

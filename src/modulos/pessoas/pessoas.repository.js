@@ -1,99 +1,75 @@
-import { prisma } from "../../utils/prismaClient.js";
+import { pgQuery } from "../../utils/pgClient.js";
 
 export class PessoasRepository {
-  async criar(pessoa) {
-    try {
-      await prisma.pessoas.create({
-        data: {
-          pessoaID: pessoa.id,
-          apelido: pessoa.apelido,
-          nome: pessoa.nome,
-          nascimento: pessoa.nascimento,
-          stack:
-            pessoa.stack && pessoa.stack.length
-              ? pessoa.stack.toString()
-              : null,
-        },
-      });
-    } catch (error) {
-      throw new Error(error.message);
-    } finally {
-      await prisma.$disconnect();
-    }
+  async cadastrar(pessoa) {
+    await pgQuery(
+      `
+        INSERT INTO pessoas (
+          id,
+          apelido,
+          nome,
+          nascimento,
+          stack
+        )
+        VALUES (
+          $1,
+          $2,
+          $3,
+          $4,
+          $5::json
+        );
+      `,
+      [
+        pessoa.id,
+        pessoa.apelido,
+        pessoa.nome,
+        pessoa.nascimento,
+        JSON.stringify(pessoa.stack),
+      ]
+    );
   }
 
   async encontrarPeloId(id) {
-    try {
-      const pessoa = await prisma.pessoas.findUnique({
-        where: { pessoaID: id },
-      });
-      if (!pessoa) return null;
-      return {
-        id: pessoa.pessoaID,
-        apelido: pessoa.apelido,
-        nome: pessoa.nome,
-        nascimento: pessoa.nascimento,
-        stack: pessoa.stack ? pessoa.stack.split(",") : null,
-      };
-    } catch (error) {
-      throw new Error(error.message);
-    } finally {
-      await prisma.$disconnect();
-    }
+    const pessoa = await pgQuery(
+      `
+        SELECT
+          id,
+          apelido,
+          nome,
+          to_char(nascimento, 'YYYY-MM-DD') as nascimento,
+          stack
+        FROM
+          pessoas
+        WHERE 
+          id = $1;
+      `,
+      [id]
+    );
+    return pessoa.rows;
   }
 
-  async encontrarPeloApelido(apelido) {
-    try {
-      return await prisma.pessoas.findUnique({
-        where: { apelido },
-      });
-    } catch (error) {
-      throw new Error(error.message);
-    } finally {
-      await prisma.$disconnect();
-    }
-  }
-
-  async encontrarPessoas(contains) {
-    try {
-      const pessoas = await prisma.pessoas.findMany({
-        where: {
-          OR: [
-            {
-              apelido: { contains, mode: "insensitive" },
-            },
-            {
-              nome: { contains, mode: "insensitive" },
-            },
-            {
-              stack: { contains, mode: "insensitive" },
-            },
-          ],
-        },
-      });
-      return pessoas.map((pessoa) => {
-        return {
-          id: pessoa.pessoaID,
-          apelido: pessoa.apelido,
-          nome: pessoa.nome,
-          nascimento: pessoa.nascimento,
-          stack: pessoa.stack ? pessoa.stack.split(",") : null,
-        };
-      });
-    } catch (error) {
-      throw new Error(error.message);
-    } finally {
-      await prisma.$disconnect();
-    }
+  async encontrarPessoas(termo) {
+    const pessoas = await pgQuery(
+      `
+        SELECT
+          id,
+          apelido,
+          nome,
+          to_char(nascimento, 'YYYY-MM-DD') as nascimento,
+          stack
+        FROM
+            pessoas
+        WHERE
+          searchable ILIKE $1
+        LIMIT 50;
+      `,
+      [`%${termo}%`]
+    );
+    return pessoas.rows;
   }
 
   async contagem() {
-    try {
-      return await prisma.pessoas.count();
-    } catch (error) {
-      throw new Error(error.message);
-    } finally {
-      await prisma.$disconnect();
-    }
+    const contagem = await pgQuery(`SELECT COUNT(1) FROM pessoas`);
+    return contagem.rows[0].count;
   }
 }

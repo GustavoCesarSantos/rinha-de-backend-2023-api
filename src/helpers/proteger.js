@@ -1,9 +1,5 @@
 export class Proteger {
-  constructor(pessoasRepository) {
-    this.pessoasRepository = pessoasRepository;
-  }
-
-  async contraPessoaInvalida(pessoa) {
+  static contraPessoaInvalida(pessoa) {
     if (!pessoa) {
       return {
         status: "requisição inválida",
@@ -38,18 +34,6 @@ export class Proteger {
         caminho: "request.body.apelido",
         recebido: `${pessoa.apelido.length}`,
         esperado: "menor ou igual a 32",
-      };
-    }
-    const pessoaDB = await this.pessoasRepository.encontrarPeloApelido(
-      pessoa.apelido
-    );
-    if (pessoaDB) {
-      return {
-        status: "requisição inválida",
-        mensagem: "apelido ja utilizado",
-        caminho: "request.body.apelido",
-        recebido: "string",
-        esperado: "string",
       };
     }
     if (!pessoa.nome) {
@@ -144,7 +128,7 @@ export class Proteger {
       };
     }
     if (pessoa.stack === undefined || pessoa.stack === null) return;
-    if (typeof pessoa.stack !== "object") {
+    if (!Array.isArray(pessoa.stack)) {
       return {
         status: "requisição sintaticamente inválida",
         mensagem: "stack tipo invalido",
