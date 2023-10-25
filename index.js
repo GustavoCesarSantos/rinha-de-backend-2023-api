@@ -1,19 +1,24 @@
-import * as dotenv from "dotenv";
-dotenv.config();
+import cluster from "cluster";
 
-import { ExpressApp } from "./src/express.js";
+const runPrimaryProcess = () => {
+  const processesCount = 4;
+  console.log(`Primary ${process.pid} is running`);
+  console.log(`Forking Server with ${processesCount} processes \n`);
 
-const app = new ExpressApp();
-const server = app.listen();
+  for (let index = 0; index < processesCount; index++) cluster.fork();
 
-function gracefullShutdown(event) {
-  return (code) => {
-    server.close(() => {
-      process.exit(code);
-    });
-  };
-}
+  cluster.on("exit", (worker, code, signal) => {
+    if (code !== 0 && !worker.exitedAfterDisconnect) {
+      console.log(
+        `Worker ${worker.process.pid} died... scheduling another one!`
+      );
+      cluster.fork();
+    }
+  });
+};
 
-process.on("SIGINT", gracefullShutdown("SIGINT"));
+const runWorkerProcess = async () => {
+  await import("./src/server.js");
+};
 
-process.on("SIGTERM", gracefullShutdown("SIGTERM"));
+cluster.isPrimary ? runPrimaryProcess() : runWorkerProcess();
